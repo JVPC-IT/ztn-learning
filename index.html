@@ -1,231 +1,314 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ZTN Flashcards</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
   --teal:#2db8a8;--teal-dark:#1e9088;--teal-light:#e8f8f6;--teal-mid:#a8e6df;
   --ink:#1a2332;--ink2:#3d4f63;--ink3:#7a8fa6;
   --bg:#dde8ef;--surface:#ffffff;--notice-bg:#efefef;
 }
-body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;padding:2rem 0 3rem;overflow-x:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;padding:1.5rem 0 3rem;overflow-x:hidden;}
 .app{max-width:100%;overflow:hidden;}
-.top-bar{text-align:center;margin-bottom:2rem;padding:0 1rem;}
-.top-title{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px;}
-.top-sub{font-size:12px;color:var(--ink3);}
-.cats{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:0 1rem;margin-bottom:1.5rem;}
-.cat{padding:4px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid rgba(45,184,168,0.3);background:rgba(255,255,255,0.6);color:var(--ink3);transition:all 0.2s;letter-spacing:0.03em;text-transform:uppercase;}
+.top-bar{text-align:center;margin-bottom:1.25rem;padding:0 1rem;}
+.top-title{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:3px;}
+.top-sub{font-size:11px;color:var(--ink3);}
+.cats{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;padding:0 1rem;margin-bottom:1.25rem;}
+.cat{padding:4px 11px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1.5px solid rgba(45,184,168,0.3);background:rgba(255,255,255,0.6);color:var(--ink3);transition:all 0.2s;text-transform:uppercase;letter-spacing:0.03em;}
 .cat:hover{border-color:var(--teal);color:var(--teal-dark);}
 .cat.active{background:var(--teal);color:#fff;border-color:var(--teal);}
-.counter{text-align:center;font-size:12px;color:var(--ink3);font-weight:600;margin-bottom:1.25rem;letter-spacing:0.05em;}
-.carousel-wrap{position:relative;height:420px;display:flex;align-items:center;justify-content:center;}
-.card-slot{position:absolute;transition:all 0.4s cubic-bezier(0.4,0.2,0.2,1);cursor:pointer;}
-.card-slot.pos-center{transform:translateX(0) scale(1);z-index:10;filter:none;}
-.card-slot.pos-left{transform:translateX(-185px) scale(0.82);z-index:5;filter:blur(2.5px);pointer-events:none;}
-.card-slot.pos-right{transform:translateX(185px) scale(0.82);z-index:5;filter:blur(2.5px);pointer-events:none;}
-.card-slot.pos-far-left{transform:translateX(-310px) scale(0.68);z-index:2;filter:blur(4px);pointer-events:none;}
-.card-slot.pos-far-right{transform:translateX(310px) scale(0.68);z-index:2;filter:blur(4px);pointer-events:none;}
-.card-slot.pos-hidden{transform:translateX(0) scale(0.5);z-index:0;opacity:0;pointer-events:none;}
-.card-inner{width:260px;height:360px;position:relative;transform-style:preserve-3d;transition:transform 0.55s cubic-bezier(0.4,0.2,0.2,1);}
+.counter{text-align:center;font-size:11px;color:var(--ink3);font-weight:600;margin-bottom:1rem;letter-spacing:0.05em;}
+
+/* TRACK — the moving layer */
+.carousel-outer{position:relative;height:460px;overflow:hidden;touch-action:pan-y;}
+.carousel-track{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;will-change:transform;transition:none;}
+.carousel-track.snapping{transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);}
+
+/* each slot */
+.card-slot{flex-shrink:0;width:300px;height:400px;display:flex;align-items:center;justify-content:center;padding:0 18px;}
+
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s cubic-bezier(0.4,0.2,0.2,1);}
 .card-inner.flipped{transform:rotateY(180deg);}
 .card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:22px;overflow:hidden;}
-.card-front{background:var(--surface);border:2px solid var(--teal-mid);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1.25rem;text-align:center;}
-.card-front .cat-pill{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dark);background:var(--teal-light);padding:3px 10px;border-radius:20px;margin-bottom:1.1rem;}
-.card-front .icon-wrap{width:72px;height:72px;background:var(--teal-light);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.1rem;}
-.card-front .icon-wrap svg{width:38px;height:38px;}
-.card-front .term{font-size:17px;font-weight:800;color:var(--ink);line-height:1.25;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.02em;}
-.card-front .term-sub{font-size:11px;color:var(--ink3);font-weight:500;margin-bottom:1.2rem;}
-.card-front .flip-hint{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);font-weight:500;}
+
+/* scale + blur for non-center */
+.card-slot{transition:transform 0.35s ease,filter 0.35s ease,opacity 0.35s ease;cursor:pointer;}
+.card-slot.is-center{transform:scale(1);filter:none;opacity:1;}
+.card-slot.is-side{transform:scale(0.78);filter:blur(1.5px);opacity:0.7;}
+.card-slot.is-far{transform:scale(0.62);filter:blur(3px);opacity:0.45;}
+
+/* FRONT */
+.card-front{background:var(--surface);border:2px solid var(--teal-mid);display:flex;flex-direction:column;align-items:center;padding:1.25rem 1.1rem 1rem;text-align:center;}
+.cat-pill{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dark);background:var(--teal-light);padding:3px 10px;border-radius:20px;margin-bottom:.9rem;}
+.icon-wrap{width:60px;height:60px;background:var(--teal-light);border-radius:15px;display:flex;align-items:center;justify-content:center;margin-bottom:.9rem;flex-shrink:0;}
+.icon-wrap svg{width:32px;height:32px;}
+.f-term{font-size:16px;font-weight:800;color:var(--ink);line-height:1.2;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.02em;}
+.f-sub{font-size:10px;color:var(--ink3);font-weight:500;margin-bottom:.6rem;}
+.f-divider{width:28px;height:2px;background:var(--teal-mid);border-radius:2px;margin:0 auto .6rem;}
+.f-preview{font-size:11.5px;color:var(--ink3);line-height:1.5;flex:1;padding:0 .25rem;}
+.f-hint{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink3);font-weight:600;margin-top:.7rem;letter-spacing:.03em;text-transform:uppercase;}
+
+/* BACK */
 .card-back{background:var(--surface);transform:rotateY(180deg);display:flex;flex-direction:column;}
-.back-header{background:var(--teal);padding:14px 16px 12px;}
-.back-header .term-back{font-size:13px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.04em;line-height:1.3;}
-.back-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
-.back-row{display:flex;gap:10px;align-items:flex-start;}
-.back-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.back-icon svg{width:14px;height:14px;}
-.bi-meaning{background:#e8f8f6;}
-.bi-matters{background:#fef3e2;}
-.back-text{flex:1;}
-.back-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;}
-.lbl-meaning{color:var(--teal-dark);}
-.lbl-matters{color:#b45309;}
-.lbl-notice{color:#555;}
-.back-desc{font-size:11.5px;color:var(--ink2);line-height:1.55;font-weight:400;}
-.back-notice-row{background:var(--notice-bg);border-radius:10px;padding:9px 12px;display:flex;gap:9px;align-items:flex-start;}
-.nav-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:1.5rem;padding:0 1rem;}
-.nav-btn{width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(45,184,168,0.35);background:rgba(255,255,255,0.7);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:var(--teal-dark);}
+.b-header{background:var(--teal);padding:11px 14px 9px;}
+.b-term{font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.04em;line-height:1.3;}
+.b-body{flex:1;padding:9px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.b-row{display:flex;gap:8px;align-items:flex-start;}
+.b-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.b-icon svg{width:12px;height:12px;}
+.bi-m{background:#e8f8f6;}.bi-w{background:#fef3e2;}
+.b-text{flex:1;}
+.b-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;}
+.lm{color:var(--teal-dark);}.lw{color:#b45309;}.ln{color:#555;}.ls{color:#6b4fa8;}
+.b-desc{font-size:10.5px;color:var(--ink2);line-height:1.5;}
+.b-notice{background:var(--notice-bg);border-radius:8px;padding:7px 10px;display:flex;gap:7px;align-items:flex-start;}
+.b-seealso{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
+.b-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:#ede9ff;color:#4c3db8;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:background .15s;}
+.b-tag:hover{background:#CECBF6;}
+
+/* nav */
+.nav-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:1rem;}
+.nav-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(45,184,168,0.35);background:rgba(255,255,255,0.7);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .nav-btn:hover{background:var(--teal);border-color:var(--teal);}
 .nav-btn:hover svg{stroke:#fff;}
-.nav-btn:disabled{opacity:0.25;cursor:default;}
-.nav-btn svg{width:18px;height:18px;stroke:var(--teal-dark);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke 0.2s;}
-.flip-btn{padding:10px 28px;border-radius:24px;background:var(--teal);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s;font-family:'Inter',sans-serif;}
+.nav-btn:disabled{opacity:.2;cursor:default;}
+.nav-btn svg{width:16px;height:16px;stroke:var(--teal-dark);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s;}
+.flip-btn{padding:9px 24px;border-radius:24px;background:var(--teal);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .2s;font-family:'Inter',sans-serif;}
 .flip-btn:hover{background:var(--teal-dark);}
-.prog-row{display:flex;align-items:center;gap:10px;padding:0 2rem;margin-top:1.25rem;}
-.prog-bar{flex:1;height:3px;background:rgba(45,184,168,0.2);border-radius:3px;}
-.prog-fill{height:100%;background:var(--teal);border-radius:3px;transition:width 0.4s;}
+.hint{text-align:center;font-size:10px;color:var(--ink3);margin-top:7px;letter-spacing:.02em;}
+.prog-row{display:flex;align-items:center;gap:10px;padding:0 2rem;margin-top:.75rem;}
+.prog-bar{flex:1;height:3px;background:rgba(45,184,168,.2);border-radius:3px;}
+.prog-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .4s;}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:10px;flex-wrap:wrap;padding:0 1rem;}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(45,184,168,.25);cursor:pointer;transition:all .2s;}
+.dot.active{background:var(--teal);transform:scale(1.35);}
+.dot:hover{background:var(--teal-mid);}
 </style>
-</head>
-<body>
+
 <div class="app">
   <div class="top-bar">
     <div class="top-title">ZTN Flashcards</div>
-    <div class="top-sub">Click a card · flip to reveal · track your progress</div>
+    <div class="top-sub">Drag · swipe · click side cards · keyboard ← →</div>
   </div>
   <div class="cats" id="cats"></div>
   <div class="counter" id="counter"></div>
-  <div class="carousel-wrap" id="carousel"></div>
+  <div class="carousel-outer" id="outer">
+    <div class="carousel-track" id="track"></div>
+  </div>
   <div class="nav-row">
-    <button class="nav-btn" id="btn-prev" onclick="move(-1)">
-      <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
-    </button>
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg></button>
     <button class="flip-btn" onclick="flipCurrent()">Flip card</button>
-    <button class="nav-btn" id="btn-next" onclick="move(1)">
-      <svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg>
-    </button>
+    <button class="nav-btn" id="btn-next" onclick="move(1)"><svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg></button>
   </div>
-  <div class="prog-row">
-    <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
-  </div>
+  <div class="hint">← swipe or drag · click blurred cards to jump</div>
+  <div class="prog-row"><div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div></div>
+  <div class="dots" id="dots"></div>
 </div>
 
 <script>
 const ICONS={
-  "Basics":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="19" cy="19" r="14"/><path d="M19 12v7l4 4"/><circle cx="19" cy="19" r="3" fill="#2db8a8" stroke="none"/></svg>`,
-  "Identity":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="19" cy="14" r="5"/><path d="M9 30c0-5.5 4.5-10 10-10s10 4.5 10 10"/><rect x="6" y="6" width="26" height="26" rx="6"/></svg>`,
-  "Tenants":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="12" height="18" rx="3"/><rect x="21" y="10" width="12" height="18" rx="3"/><path d="M17 19h4"/></svg>`,
-  "Devices":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="8" width="24" height="17" rx="3"/><path d="M14 29h10M19 25v4"/></svg>`,
-  "Network":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="19" cy="19" r="12"/><path d="M19 7c-4 4-4 20 0 24M19 7c4 4 4 20 0 24M7 19h24"/></svg>`,
-  "Security":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5l12 5v9c0 7-5 12-12 14C12 31 7 26 7 19V10z"/><path d="M14 19l3 3 7-7"/></svg>`,
-  "Certificates":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="26" height="18" rx="3"/><circle cx="19" cy="17" r="4"/><path d="M15 30l4-4 4 4"/></svg>`,
-  "Operations":`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 8v4M19 26v4M8 19H4M34 19h-4"/><circle cx="19" cy="19" r="7"/><path d="M11 11l3 3M24 24l3 3M11 27l3-3M24 14l3-3"/></svg>`,
+  Basics:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="19" cy="19" r="14"/><path d="M19 12v7l4 4"/><circle cx="19" cy="19" r="3" fill="#2db8a8" stroke="none"/></svg>`,
+  Identity:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="19" cy="14" r="5"/><path d="M9 30c0-5.5 4.5-10 10-10s10 4.5 10 10"/><rect x="6" y="6" width="26" height="26" rx="6"/></svg>`,
+  Tenants:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="12" height="18" rx="3"/><rect x="21" y="10" width="12" height="18" rx="3"/><path d="M17 19h4"/></svg>`,
+  Devices:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="8" width="24" height="17" rx="3"/><path d="M14 29h10M19 25v4"/></svg>`,
+  Network:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="19" cy="19" r="12"/><path d="M19 7c-4 4-4 20 0 24M19 7c4 4 4 20 0 24M7 19h24"/></svg>`,
+  Security:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5l12 5v9c0 7-5 12-12 14C12 31 7 26 7 19V10z"/><path d="M14 19l3 3 7-7"/></svg>`,
+  Certificates:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="26" height="18" rx="3"/><circle cx="19" cy="17" r="4"/><path d="M15 30l4-4 4 4"/></svg>`,
+  Operations:`<svg viewBox="0 0 38 38" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 8v4M19 26v4M8 19H4M34 19h-4"/><circle cx="19" cy="19" r="7"/><path d="M11 11l3 3M24 24l3 3M11 27l3-3M24 14l3-3"/></svg>`,
 };
-const ICON_MEANING=`<svg viewBox="0 0 14 14" fill="none" stroke="#2db8a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="5" r="3"/><path d="M4 11c0-1.7 1.3-3 3-3s3 1.3 3 3"/></svg>`;
-const ICON_MATTERS=`<svg viewBox="0 0 14 14" fill="none" stroke="#b45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3.5M7 10h.01"/></svg>`;
-const ICON_NOTICE=`<svg viewBox="0 0 14 14" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.5"/><path d="M5 5.5c0-1.1.9-2 2-2s2 .9 2 2c0 1-1 1.5-2 2v.5M7 10.5h.01"/></svg>`;
+const IM=`<svg viewBox="0 0 12 12" fill="none" stroke="#2db8a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="4" r="2.2"/><path d="M2.5 10c0-1.5 1.5-3 3.5-3s3.5 1.5 3.5 3"/></svg>`;
+const IW=`<svg viewBox="0 0 12 12" fill="none" stroke="#b45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5V6.5M6 8.5h.01"/></svg>`;
+const IN=`<svg viewBox="0 0 12 12" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4.5"/><path d="M4 4.5C4 3.5 4.9 3 6 3s2 .9 2 1.5c0 1-1 1.5-2 2v.5M6 9.5h.01"/></svg>`;
 
 const ALL=[
-  {term:"Zero Trust",sub:"Core concept",cat:"Basics",meaning:"A security model that trusts no one by default — every access request is verified regardless of location.",matters:"It explains why checks happen more often and why being on the network is no longer enough.",notice:"You may be asked to sign in more carefully or use a managed PC to access company resources."},
-  {term:"Never Trust, Always Verify",sub:"Core principle",cat:"Basics",meaning:"Every access request must be checked — not assumed safe — every single time.",matters:"It is the reason behind login prompts, device checks, and access restrictions.",notice:"Access can be allowed, limited, or blocked depending on real-time checks."},
-  {term:"Least Privilege",sub:"Access concept",cat:"Basics",meaning:"Giving only the minimum access needed for your job — not broad access just in case.",matters:"Reduces damage if an account is compromised and prevents accidental data exposure.",notice:"You may need to request access to certain folders rather than having it automatically."},
-  {term:"Continuous Verification",sub:"Security behavior",cat:"Basics",meaning:"Security checks happen continuously — not only once at login.",matters:"Risk can change over time through device updates, unusual activity, or location changes.",notice:"Something that worked yesterday may behave differently today if risk signals changed."},
-  {term:"MFA",sub:"Multi-Factor Authentication",cat:"Identity",meaning:"A login method requiring more than a password — such as phone confirmation or a one-time code.",matters:"One of the strongest protections against account takeover attacks.",notice:"You may be asked to approve a sign-in on your phone or enter a code."},
-  {term:"Conditional Access",sub:"Access control rule",cat:"Identity",meaning:"A rule system that decides whether to allow, limit, or block access based on identity, device, and context.",matters:"Protects company data without blocking normal everyday work unnecessarily.",notice:"You might be blocked if your device is non-compliant or a sign-in looks unusual."},
-  {term:"SSO",sub:"Single Sign-On",cat:"Identity",meaning:"Sign in once and access multiple company services without repeating the full login each time.",matters:"Reduces friction while keeping all security controls in place.",notice:"You may notice fewer repeated login prompts when everything is working normally."},
-  {term:"Authentication",sub:"Proving who you are",cat:"Identity",meaning:"The process of proving you are really you — signing in with verified credentials.",matters:"Prevents stolen passwords alone from being enough to access company data.",notice:"You may need to confirm sign-in using additional verification steps."},
-  {term:"Authorization",sub:"What you can access",cat:"Identity",meaning:"What you are permitted to do after signing in — even valid users may not access everything.",matters:"Ensures data access is tied to job role, not just a successful login.",notice:"You may see 'access denied' even when your password is correct."},
-  {term:"Dual-Tenant Usage",sub:"Two accounts by design",cat:"Tenants",meaning:"Using two separate accounts — one for security enforcement (NOEXG), one for daily business work (JVPC).",matters:"Keeps security enforcement strong without disrupting your everyday collaboration tools.",notice:"You may sign into Windows with one account and use Teams or email with another."},
-  {term:"NOEXG Tenant",sub:"@noexg.com",cat:"Tenants",meaning:"The security tenant used for Windows sign-in and device compliance enforcement.",matters:"This is how security controls and policies are consistently applied to your PC.",notice:"You may see this account at PC sign-in and in security-related prompts."},
-  {term:"JVPC Tenant",sub:"@jvpc.com.vn",cat:"Tenants",meaning:"The business tenant used for email, Teams, SharePoint, and all daily collaboration.",matters:"This is where your day-to-day work and business data live.",notice:"This is the account you use inside Outlook, Teams, and SharePoint."},
-  {term:"Responsibility Boundary",sub:"Who controls what",cat:"Tenants",meaning:"A clear separation: Security Team controls NOEXG, JVPC IT controls business tools.",matters:"Prevents business changes from weakening security, and security changes from breaking work tools.",notice:"Knowing which side the issue is on helps route it to the right team faster."},
-  {term:"ZTN PC",sub:"Zero Trust Network PC",cat:"Devices",meaning:"A company-managed PC configured to operate within the Zero Trust security environment.",matters:"Using a managed device is a key way to keep company data safe while working flexibly.",notice:"Some settings are managed automatically and cannot be changed freely."},
-  {term:"Device Compliance",sub:"Meeting security standards",cat:"Devices",meaning:"Whether your device meets required conditions — updates, security settings, and endpoint protection.",matters:"Non-compliant devices may be restricted to protect company systems and data.",notice:"Access may be limited until your device returns to a compliant state."},
-  {term:"Microsoft Intune",sub:"Device management system",cat:"Devices",meaning:"The platform used to manage device settings and distribute apps on managed PCs.",matters:"Keeps all devices secure and consistently configured across users and locations.",notice:"You may be directed to install apps via the Company Portal rather than downloading freely."},
-  {term:"Certificate",sub:"Digital trust ID",cat:"Certificates",meaning:"A digital credential that proves trust for a user or device — it has an expiry date.",matters:"Used to establish trusted communication and verify that your device is still authorized.",notice:"If a certificate expires, access to some resources may fail until it is renewed."},
-  {term:"Certificate Expiration",sub:"Trust has a time limit",cat:"Certificates",meaning:"Certificates do not last forever — they expire and must be renewed periodically.",matters:"Expired certificates can restrict access until the system renews them automatically.",notice:"Something may stop working temporarily — this is expected behavior, not a malfunction."},
-  {term:"GlobalProtect",sub:"VPN client",cat:"Network",meaning:"The VPN software that routes your traffic securely through Zero Trust security services.",matters:"Ensures that all outgoing traffic passes through the correct inspection and policy controls.",notice:"You may see it running in the background when accessing company resources remotely."},
-  {term:"Latency",sub:"Why things feel slow",cat:"Network",meaning:"Delay in data travel — caused by longer routing paths and security inspection checkpoints.",matters:"Longer routes and inspection increase latency, which can feel like slowness during normal work.",notice:"Teams calls or file loads may feel slower — this is often normal security processing."},
-  {term:"Prisma Access",sub:"Cloud security gateway",cat:"Network",meaning:"A cloud service that handles VPN connectivity and applies web access security policies.",matters:"Protects users wherever they work by inspecting all traffic through security controls.",notice:"Network paths may change because all traffic is routed through inspection services."},
-  {term:"EDR",sub:"Endpoint Detection & Response",cat:"Security",meaning:"Security software that monitors your device for suspicious behavior and responds to threats.",matters:"Reduces risk from malware, ransomware, and other endpoint-based attacks.",notice:"Security scanning can sometimes occur quietly in the background."},
-  {term:"Cortex XDR",sub:"JVPC's EDR solution",cat:"Security",meaning:"The endpoint detection and response tool used by JVPC for monitoring and threat investigation.",matters:"Helps IT detect threats early and investigate abnormal events on managed devices.",notice:"You may hear about it when IT is investigating a security event on your device."},
-  {term:"Logging",sub:"Recording what happens",cat:"Security",meaning:"Automatic recording of important events — sign-ins, access attempts, device activity.",matters:"Logs help IT troubleshoot issues and investigate security incidents effectively.",notice:"Providing exact time and location when reporting issues helps IT match the right logs."},
-  {term:"Symptom vs Root Cause",sub:"Describe, don't just report",cat:"Operations",meaning:"A symptom is what you observe (slow, error). A root cause is the actual underlying reason.",matters:"Sharing context helps IT find the root cause faster instead of guessing.",notice:"'Teams is slow at home at 9am' is far more useful to IT than just 'Teams is slow'."},
-  {term:"Evidence",sub:"Context that helps IT",cat:"Operations",meaning:"Facts that describe a problem: error message, time, location, app, and what you were doing.",matters:"Evidence lets IT identify the right logs and reproduce the issue accurately.",notice:"Providing the exact time and affected app is usually the most useful piece of information."},
-  {term:"Ticket",sub:"Tracked problem record",cat:"Operations",meaning:"A formal record of a reported issue — assigned, investigated, and closed with a tracked status.",matters:"Prevents issues from being lost and helps IT identify recurring patterns over time.",notice:"You may receive a ticket number and status updates after reporting an issue."},
-  {term:"Knowledge Base",sub:"Shared solutions library",cat:"Operations",meaning:"A shared repository of fixes, FAQs, and lessons learned from resolved issues.",matters:"Helps staff solve common problems faster and reduces repeated questions to IT.",notice:"You may be directed to a KB article rather than receiving a repeated individual explanation."},
-  {term:"Continuous Improvement",sub:"Learning from incidents",cat:"Operations",meaning:"A cycle: report → analyze → share → prevent. Every incident becomes input for improvement.",matters:"Turns today's problem into tomorrow's prevention — the system gets smarter over time.",notice:"You may see updated guidance or procedures after recurring issues are resolved."},
+  {term:"Zero Trust",sub:"The big idea",cat:"Basics",preview:"No one is trusted automatically — not even inside the office.",meaning:"Imagine a building where every door checks your ID — even if you already got in through the front gate. The company no longer assumes you're safe just because you're on the network.",matters:"It's why security feels more thorough now. Working from home, travelling, or using cloud apps — the system still checks who you are every time.",notice:"You might be asked to verify your identity more often, or use a specific company laptop to open certain files.",see:["Never Trust Always Verify","MFA","Continuous Verification"]},
+  {term:"Never Trust, Always Verify",sub:"The golden rule",cat:"Basics",preview:"The system checks every access request — every single time.",meaning:"Like a bank that checks your ID every time you withdraw — no matter how long you've been a customer. The system never assumes you're safe. It checks every time.",matters:"This is the reason behind all the extra login steps and prompts. They're not random — they're the system doing its job.",notice:"Sometimes access gets blocked even when it worked before. That's the system re-checking, not something broken.",see:["Zero Trust","Conditional Access"]},
+  {term:"Least Privilege",sub:"Only what you need",cat:"Basics",preview:"You get access to what your job needs — nothing more.",meaning:"Think of a hotel key card — it only opens your room, not every room. You get access to what your job actually needs, nothing more.",matters:"It limits the damage if someone's account gets stolen. A thief with your key can only get into your room, not the whole hotel.",notice:"You might find you can't open certain folders by default. That's normal — just request access if your job needs it.",see:["Authorization"]},
+  {term:"Continuous Verification",sub:"Checked all the time",cat:"Basics",preview:"Security doesn't stop after you log in — it keeps running.",meaning:"It's not like a concert where your ticket is checked once at the door. The system keeps checking throughout the day — your device, your location, your behaviour.",matters:"Risk can change. Maybe your laptop missed an update, or you're working from an unusual location. The system adapts automatically.",notice:"Something that worked fine yesterday might behave differently today. It's usually the system responding to a change, not a fault.",see:["Conditional Access","Device Compliance"]},
+  {term:"MFA",sub:"Double-lock your account",cat:"Identity",preview:"Your password plus your phone — two locks are better than one.",meaning:"Like an ATM that needs both your card AND your PIN. MFA means your password alone isn't enough — you also confirm it's really you via your phone.",matters:"Even if someone steals your password, they still can't get in without your phone. It's one of the most effective protections available.",notice:"You'll get a prompt on your phone to approve sign-ins. Tap Approve when it's you — tap Deny if you didn't request it.",see:["Authentication","Conditional Access"]},
+  {term:"Conditional Access",sub:"Smart entry rules",cat:"Identity",preview:"Access depends on several conditions — not just your password.",meaning:"Like a nightclub that checks not just your ID, but also if you're on the guest list and dressed appropriately. Access depends on several conditions at once.",matters:"It lets the company protect sensitive data without making everyday work difficult for people following the rules.",notice:"You might get blocked when accessing something from an unmanaged device or unusual location — even with the right password.",see:["MFA","Device Compliance","Continuous Verification"]},
+  {term:"SSO",sub:"One login, many doors",cat:"Identity",preview:"Sign in once in the morning — access everything all day.",meaning:"Like a master key that opens multiple doors in the same building. You sign in once and the system remembers you across Teams, SharePoint, email, and more.",matters:"Less time logging in means fewer interruptions — while security controls still run quietly in the background.",notice:"You'll notice you don't have to re-enter your password every time you switch between company apps.",see:["Authentication","Identity"]},
+  {term:"Authentication",sub:"Proving it's really you",cat:"Identity",preview:"The moment the system confirms your identity before letting you in.",meaning:"Like showing your staff badge at reception. The system confirms your identity before letting you in.",matters:"Passwords can be stolen. Authentication adds a layer that makes stolen credentials much harder to use.",notice:"You might need to go through an extra confirmation step when signing in, especially after being away for a while.",see:["MFA","SSO"]},
+  {term:"Authorization",sub:"What you're allowed to do",cat:"Identity",preview:"Being logged in doesn't mean you can access everything.",meaning:"Getting into the building is one thing. Being allowed into the finance room is another. Authorization is about what you can access once you're already logged in.",matters:"It means the right people see the right information. Not everyone needs access to everything — and that's intentional.",notice:"Access denied doesn't always mean something is broken. It may mean that file or system isn't part of your role.",see:["Least Privilege","Authentication"]},
+  {term:"Dual-Tenant Usage",sub:"Two accounts, one laptop",cat:"Tenants",preview:"One laptop, two accounts — each with a clear purpose.",meaning:"Think of it like carrying two staff badges — one gets you through security doors (NOEXG), the other is your everyday work ID for emails and meetings (JVPC).",matters:"Keeping them separate means tighter security doesn't interfere with your daily work, and business tools don't accidentally weaken security.",notice:"You might sign into Windows with one email address, then open Outlook or Teams using a different one. That's normal and by design.",see:["NOEXG Tenant","JVPC Tenant","Responsibility Boundary"]},
+  {term:"NOEXG Tenant",sub:"Your security login",cat:"Tenants",preview:"The account that handles security on your laptop.",meaning:"This is the account (@noexg.com) that handles the security side of your laptop — the ID badge that gets you past the security gate when you first arrive.",matters:"It makes sure your device is checked and compliant before you start working. It's the foundation that keeps everything safe.",notice:"You'll see this account on the Windows login screen. It's not your work email — it's specifically for device security.",see:["Dual-Tenant Usage","Device Compliance"]},
+  {term:"JVPC Tenant",sub:"Your work login",cat:"Tenants",preview:"Your everyday account for email, Teams and SharePoint.",meaning:"This is your everyday work account (@jvpc.com.vn) — the one you use for emails, Teams chats, SharePoint files, and all normal business activity.",matters:"Once security is confirmed via NOEXG, this account is where your actual work happens. Think of it as your desk — everything you need is here.",notice:"This is the account that shows up in Outlook, Teams, and SharePoint. Most of your daily work happens here.",see:["Dual-Tenant Usage","SSO"]},
+  {term:"Responsibility Boundary",sub:"Who handles what",cat:"Tenants",preview:"Different teams own different parts — so issues get fixed faster.",meaning:"Like a building where facilities manages the air conditioning and IT manages the computers — different teams, different responsibilities, no overlap.",matters:"Clear ownership means problems get fixed faster. You can quickly report to the right team instead of wondering who to call.",notice:"Security issues (sign-in, VPN, device) go to the Security Team. Work tool issues (email, Teams, SharePoint) go to JVPC IT.",see:["Dual-Tenant Usage","Ticket"]},
+  {term:"ZTN PC",sub:"Your security-ready laptop",cat:"Devices",preview:"A company laptop built and managed for Zero Trust from day one.",meaning:"A company-issued laptop pre-configured to work within the Zero Trust system — set up, monitored, and kept up to date automatically.",matters:"Using this laptop is one of the main ways the company protects its data while letting you work from anywhere.",notice:"Some things — like installing software freely — aren't allowed on this laptop. That's intentional, not a restriction placed on you personally.",see:["Device Compliance","Microsoft Intune"]},
+  {term:"Device Compliance",sub:"Is your laptop up to standard?",cat:"Devices",preview:"Your laptop must meet certain conditions to access company systems.",meaning:"Like a car that needs to pass a roadworthy check before driving on public roads. Your laptop needs to meet certain conditions before it can access company systems.",matters:"If your laptop is out of date or missing a security update, it becomes a weak point. Compliance checks make sure that doesn't happen silently.",notice:"If access suddenly gets limited, your laptop might have missed an update. It usually fixes itself — or IT can help.",see:["Microsoft Intune","Conditional Access","Certificate"]},
+  {term:"Microsoft Intune",sub:"The laptop manager behind the scenes",cat:"Devices",preview:"Keeps your laptop healthy and compliant without you doing anything.",meaning:"The invisible system that keeps your laptop healthy — pushing updates, installing approved apps, and keeping security settings in place. You don't see it, but it's always working.",matters:"You don't have to manually manage your laptop's security. The company handles it for you, consistently and automatically.",notice:"You may see apps appear automatically or get a prompt to install something through the Company Portal. That's Intune doing its job.",see:["Device Compliance","ZTN PC"]},
+  {term:"Certificate",sub:"Your laptop's digital ID card",cat:"Certificates",preview:"A digital credential that proves your device is genuine and trusted.",meaning:"Just like a passport proves who you are to border control, a certificate proves your device is genuine and trusted. Invisible to you but essential for the system.",matters:"Without a valid certificate, the system can't confirm your device is safe to connect. It's a background handshake that happens every time.",notice:"If something stops working unexpectedly — especially after a long break — an expired certificate might be the reason. IT can renew it quickly.",see:["Certificate Expiration","Device Compliance"]},
+  {term:"Certificate Expiration",sub:"Trust needs renewing",cat:"Certificates",preview:"Like a gym membership — access stops when it expires.",meaning:"Like a gym membership that needs renewing each year — even if you've been a member for years, access stops when it expires. Certificates work the same way.",matters:"It's not a fault. It's the system making sure nothing is permanently trusted without being checked regularly.",notice:"If access to something suddenly stops, it could be an expired certificate. Report it to IT — it's usually fixed quickly.",see:["Certificate","Device Compliance"]},
+  {term:"GlobalProtect",sub:"Your secure travel tunnel",cat:"Network",preview:"A private armoured road for your work traffic — wherever you are.",meaning:"Imagine a private, armoured road that only your company's vehicles can use. GlobalProtect creates a secure path for your work traffic — no matter where you're connecting from.",matters:"Without it, your data would travel on public roads where others could potentially see it. This keeps your connection private and protected.",notice:"You'll see it running quietly in the background. If it disconnects, some company resources may become unavailable until it reconnects.",see:["Prisma Access","Latency"]},
+  {term:"Latency",sub:"Why things feel slow sometimes",cat:"Network",preview:"Your data takes a longer, safer route — that takes extra time.",meaning:"Imagine your data taking a detour through a security checkpoint before reaching its destination. It adds time — like taking a longer but safer route to work.",matters:"Slowness isn't always a problem. Sometimes it's the system doing extra security checks, especially during busy hours or when far away.",notice:"If Teams feels laggy or files take longer to open, note the time and your location. That context helps IT understand if it's normal or needs fixing.",see:["GlobalProtect","Prisma Access","Symptom vs Root Cause"]},
+  {term:"Prisma Access",sub:"The security checkpoint in the cloud",cat:"Network",preview:"All your work traffic passes through a cloud security checkpoint.",meaning:"All your work internet traffic passes through a security checkpoint in the cloud — like customs at an airport — before reaching its destination.",matters:"Threats can be spotted and blocked before they ever reach your laptop, wherever you're working from.",notice:"You might notice your internet route feels different from usual. That's traffic going through the security checkpoint — normal and working as intended.",see:["GlobalProtect","Latency"]},
+  {term:"EDR",sub:"A security guard for your laptop",cat:"Security",preview:"Quietly watches your laptop for anything suspicious — all day.",meaning:"Imagine a security guard quietly watching your laptop all day — not reading your work, but looking for anything suspicious happening in the background.",matters:"It catches threats that sneak past the front door — like malware from a dodgy email — and alerts the team before damage is done.",notice:"You won't notice it most of the time. Occasionally your laptop might run slightly slower during a background scan. That's normal.",see:["Cortex XDR","Logging"]},
+  {term:"Cortex XDR",sub:"JVPC's security tool",cat:"Security",preview:"The specific security tool JVPC uses to protect your device.",meaning:"The specific security tool JVPC uses. It watches for anything unusual on your laptop and helps the security team investigate suspicious events.",matters:"Having a named tool means the security team has clear visibility and can respond quickly if something goes wrong on your device.",notice:"You'll probably never interact with it directly. IT might mention it if they're investigating a security event on your device.",see:["EDR","Logging"]},
+  {term:"Logging",sub:"The security camera system",cat:"Security",preview:"Events are recorded quietly — so IT can investigate when needed.",meaning:"Like security cameras in a building — not watching you personally, but recording events: who signed in, what was accessed, when, and from where.",matters:"When something goes wrong, logs are how IT figures out what happened. Without logs, investigating problems would be like solving a crime with no footage.",notice:"When reporting an issue, give the exact time and app name — it helps IT match the right log entry and makes the fix much faster.",see:["Evidence","Ticket","EDR"]},
+  {term:"Symptom vs Root Cause",sub:"Describe what you see",cat:"Operations",preview:"'Teams is slow' is a symptom. IT needs to find the real reason.",meaning:"A symptom is what you notice — 'Teams is slow.' The root cause is the actual reason — maybe your laptop missed an update, or the network is congested.",matters:"Describing only the symptom is like calling a doctor and saying 'I feel bad.' The more context you give, the faster they can diagnose and fix it.",notice:"Note: what app, what time, where you were, what you were doing. That one extra minute of detail can save hours of back-and-forth.",see:["Evidence","Latency","Ticket"]},
+  {term:"Evidence",sub:"Give IT the full picture",cat:"Operations",preview:"The more specific your report, the faster IT can fix it.",meaning:"Think of it like reporting a car accident — 'a crash happened' isn't enough. The time, location, and what happened all matter. Same with IT issues.",matters:"The more specific your report, the faster IT can find the right log, reproduce the issue, and fix it properly the first time.",notice:"Most useful to include: exact time, which app, what you were trying to do, and any error message you saw.",see:["Symptom vs Root Cause","Logging","Ticket"]},
+  {term:"Ticket",sub:"Your issue, tracked properly",cat:"Operations",preview:"Like a numbered receipt — proof your issue is being handled.",meaning:"Like a numbered receipt when you drop off something for repair. You know it's logged, someone is responsible, and you can check on progress.",matters:"Without a ticket, issues can get lost in busy inboxes. A ticket gives your problem an official home and ensures it gets followed up.",notice:"After reporting an issue you should receive a ticket number. Keep it — it's your reference if you need to follow up.",see:["Knowledge Base","Evidence"]},
+  {term:"Knowledge Base",sub:"The answers that already exist",cat:"Operations",preview:"A library of solved problems — written once, available to everyone.",meaning:"A shared library of solved problems and step-by-step guides — like a recipe book, but for IT fixes. Written once, available to everyone forever.",matters:"Common problems don't need to be solved from scratch every time. A good knowledge base means faster fixes and less frustration for everyone.",notice:"Before raising a ticket, IT might point you to a KB article first. It's not a brush-off — it's often the fastest path to a fix.",see:["Ticket","Continuous Improvement"]},
+  {term:"Continuous Improvement",sub:"Getting better every time",cat:"Operations",preview:"Every problem reported makes the whole system a little better.",meaning:"Every problem that gets reported, investigated, and fixed leaves behind a lesson. That lesson gets written down, shared, and used to prevent the same thing happening again.",matters:"The environment gets more stable over time — not despite problems, but because of them. Reporting issues is how the whole system improves.",notice:"You might notice updated guides or changed processes after a recurring issue. Your reports helped make that happen.",see:["Knowledge Base","Ticket"]},
 ];
 
+const SLOT_W=300,PAD=18;
 let deck=[],cur=0,activeCat="All",flippedSet=new Set();
-function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
+let dragX=0,dragStartX=0,isDragging=false,dragMoved=false;
+
+function shuffle(a){return[...a].sort(()=>Math.random()-0.5);}
+
 function buildDeck(){
   deck=shuffle(activeCat==="All"?ALL:ALL.filter(c=>c.cat===activeCat));
-  cur=0;flippedSet=new Set();render();
+  cur=0;flippedSet=new Set();buildTrack();updateUI();
 }
-function getPos(i){
-  const d=i-cur;
-  if(d===0)return'pos-center';
-  if(d===-1)return'pos-left';
-  if(d===1)return'pos-right';
-  if(d===-2)return'pos-far-left';
-  if(d===2)return'pos-far-right';
-  return'pos-hidden';
-}
-function makeCard(card,i){
-  const icon=ICONS[card.cat]||ICONS["Basics"];
-  const isFlipped=flippedSet.has(i);
-  return`<div class="card-slot ${getPos(i)}" id="slot-${i}" onclick="clickSlot(${i})">
-    <div class="card-inner${isFlipped?' flipped':''}" id="inner-${i}">
-      <div class="card-face card-front">
-        <div class="cat-pill">${card.cat}</div>
-        <div class="icon-wrap">${icon}</div>
-        <div class="term">${card.term}</div>
-        <div class="term-sub">${card.sub}</div>
-        <div style="flex:1"></div>
-        <div class="flip-hint">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7a5 5 0 0 1 9-2M12 7a5 5 0 0 1-9 2"/><path d="M10 5l1-1.5.5 2"/><path d="M4 9l-1 1.5-.5-2"/></svg>
-          Tap to flip
+
+function buildTrack(){
+  const track=document.getElementById('track');
+  const outerW=document.getElementById('outer').offsetWidth||680;
+  const centerOffset=outerW/2-SLOT_W/2;
+  track.innerHTML=deck.map((card,i)=>{
+    const icon=ICONS[card.cat]||ICONS.Basics;
+    const sees=card.see&&card.see.length?`<div class="b-row" style="margin-top:2px"><div class="b-icon" style="background:#ede9ff"><svg viewBox="0 0 12 12" fill="none" stroke="#6b4fa8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4z"/><circle cx="6" cy="6" r="1.5"/></svg></div><div class="b-text"><div class="b-lbl ls">See also</div><div class="b-seealso">${card.see.map(s=>`<button class="b-tag" onclick="goToTerm('${s}')">${s}</button>`).join('')}</div></div></div>`:'';
+    return`<div class="card-slot" data-idx="${i}" onclick="slotClick(event,${i})">
+      <div class="card-inner" id="inner-${i}">
+        <div class="card-face card-front">
+          <div class="cat-pill">${card.cat}</div>
+          <div class="icon-wrap">${icon}</div>
+          <div class="f-term">${card.term}</div>
+          <div class="f-sub">${card.sub}</div>
+          <div class="f-divider"></div>
+          <div class="f-preview">${card.preview}</div>
+          <div class="f-hint"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="#2db8a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7a5 5 0 0 1 9-2M12 7a5 5 0 0 1-9 2"/><path d="M10 5l1-1.5.5 2"/><path d="M4 9l-1 1.5-.5-2"/></svg>Tap to flip</div>
         </div>
-      </div>
-      <div class="card-face card-back">
-        <div class="back-header"><div class="term-back">${card.term}</div></div>
-        <div class="back-body">
-          <div class="back-row">
-            <div class="back-icon bi-meaning">${ICON_MEANING}</div>
-            <div class="back-text">
-              <div class="back-label lbl-meaning">Meaning</div>
-              <div class="back-desc">${card.meaning}</div>
-            </div>
-          </div>
-          <div class="back-row">
-            <div class="back-icon bi-matters">${ICON_MATTERS}</div>
-            <div class="back-text">
-              <div class="back-label lbl-matters">Why it matters</div>
-              <div class="back-desc">${card.matters}</div>
-            </div>
-          </div>
-          <div class="back-notice-row">
-            <div class="back-icon" style="background:transparent">${ICON_NOTICE}</div>
-            <div class="back-text">
-              <div class="back-label lbl-notice">What you might notice</div>
-              <div class="back-desc">${card.notice}</div>
-            </div>
+        <div class="card-face card-back">
+          <div class="b-header"><div class="b-term">${card.term}</div></div>
+          <div class="b-body">
+            <div class="b-row"><div class="b-icon bi-m">${IM}</div><div class="b-text"><div class="b-lbl lm">What it means</div><div class="b-desc">${card.meaning}</div></div></div>
+            <div class="b-row"><div class="b-icon bi-w">${IW}</div><div class="b-text"><div class="b-lbl lw">Why it matters</div><div class="b-desc">${card.matters}</div></div></div>
+            <div class="b-notice"><div class="b-icon" style="background:transparent">${IN}</div><div class="b-text"><div class="b-lbl ln">What you might notice</div><div class="b-desc">${card.notice}</div></div></div>
+            ${sees}
           </div>
         </div>
       </div>
-    </div>
-  </div>`;
+    </div>`;
+  }).join('');
+  track.style.left=centerOffset+'px';
+  snapTo(cur,false);
+  updateSlotStyles();
 }
-function render(){
-  const c=document.getElementById('carousel');
-  const start=Math.max(0,cur-2),end=Math.min(deck.length-1,cur+2);
-  let html='';
-  for(let i=start;i<=end;i++)html+=makeCard(deck[i],i);
-  c.innerHTML=html;
+
+function getTrackX(){
+  return parseFloat(document.getElementById('track').style.transform.replace('translateX(',''))||0;
+}
+
+function snapTo(idx,animate=true){
+  const track=document.getElementById('track');
+  if(animate){track.classList.add('snapping');setTimeout(()=>track.classList.remove('snapping'),380);}
+  track.style.transform=`translateX(${-idx*(SLOT_W+PAD*2)}px)`;
+}
+
+function updateSlotStyles(){
+  document.querySelectorAll('.card-slot').forEach(el=>{
+    const i=parseInt(el.dataset.idx);
+    const d=Math.abs(i-cur);
+    el.classList.remove('is-center','is-side','is-far');
+    if(d===0)el.classList.add('is-center');
+    else if(d===1)el.classList.add('is-side');
+    else el.classList.add('is-far');
+  });
+}
+
+function updateUI(){
+  snapTo(cur);
+  updateSlotStyles();
   document.getElementById('counter').textContent=`Card ${cur+1} of ${deck.length}`;
   document.getElementById('prog').style.width=`${((cur+1)/deck.length)*100}%`;
   document.getElementById('btn-prev').disabled=cur===0;
   document.getElementById('btn-next').disabled=cur===deck.length-1;
+  renderDots();
 }
-function clickSlot(i){
-  if(i===cur)flipCard(i);
-  else if(i===cur-1)move(-1);
-  else if(i===cur+1)move(1);
+
+function renderDots(){
+  const max=Math.min(deck.length,15);
+  const d=document.getElementById('dots');
+  if(deck.length<=1){d.innerHTML='';return;}
+  d.innerHTML=Array.from({length:max},(_,i)=>{
+    const idx=deck.length<=max?i:Math.round(i*(deck.length-1)/(max-1));
+    return`<div class="dot${cur===idx?' active':''}" onclick="jumpTo(${idx})"></div>`;
+  }).join('');
 }
+
+function jumpTo(i){if(i>=0&&i<deck.length){cur=i;updateUI();}}
+function move(dir){const n=cur+dir;if(n>=0&&n<deck.length){cur=n;updateUI();}}
 function flipCard(i){
   if(flippedSet.has(i))flippedSet.delete(i);else flippedSet.add(i);
   const el=document.getElementById('inner-'+i);
   if(el)el.classList.toggle('flipped',flippedSet.has(i));
 }
 function flipCurrent(){flipCard(cur);}
-function move(dir){
-  const next=cur+dir;
-  if(next<0||next>=deck.length)return;
-  cur=next;render();
+
+function slotClick(e,i){
+  if(dragMoved)return;
+  if(i===cur)flipCard(i);
+  else{cur=i;updateUI();}
 }
+
+function goToTerm(name){
+  const idx=deck.findIndex(c=>c.term===name);
+  if(idx>=0){cur=idx;flippedSet.delete(idx);updateUI();}
+}
+
+// SMOOTH DRAG
+const outer=document.getElementById('outer');
+let trackBaseX=0;
+
+function onDragStart(clientX){
+  isDragging=true;dragMoved=false;
+  dragStartX=clientX;dragX=clientX;
+  trackBaseX=-cur*(SLOT_W+PAD*2);
+  document.getElementById('track').classList.remove('snapping');
+  outer.style.cursor='grabbing';
+}
+function onDragMove(clientX){
+  if(!isDragging)return;
+  const dx=clientX-dragStartX;
+  if(Math.abs(dx)>4)dragMoved=true;
+  const track=document.getElementById('track');
+  // live move with resistance at edges
+  let newX=trackBaseX+dx;
+  const minX=-(deck.length-1)*(SLOT_W+PAD*2);
+  if(newX>0)newX=dx*0.25;
+  if(newX<minX)newX=minX+(newX-minX)*0.25;
+  track.style.transform=`translateX(${newX}px)`;
+  dragX=clientX;
+}
+function onDragEnd(clientX){
+  if(!isDragging)return;
+  isDragging=false;
+  outer.style.cursor='';
+  const dx=clientX-dragStartX;
+  const threshold=40;
+  if(Math.abs(dx)>threshold){
+    if(dx<0&&cur<deck.length-1)cur++;
+    else if(dx>0&&cur>0)cur--;
+  }
+  updateUI();
+  setTimeout(()=>{dragMoved=false;},50);
+}
+
+outer.addEventListener('mousedown',e=>{onDragStart(e.clientX);e.preventDefault();});
+window.addEventListener('mousemove',e=>{if(isDragging)onDragMove(e.clientX);});
+window.addEventListener('mouseup',e=>{onDragEnd(e.clientX);});
+outer.addEventListener('touchstart',e=>{onDragStart(e.touches[0].clientX);},{passive:true});
+outer.addEventListener('touchmove',e=>{if(isDragging)onDragMove(e.touches[0].clientX);},{passive:true});
+outer.addEventListener('touchend',e=>{onDragEnd(e.changedTouches[0].clientX);});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')move(-1);
+  else if(e.key==='ArrowRight')move(1);
+  else if(e.key===' '||e.key==='Enter'){e.preventDefault();flipCurrent();}
+});
+
 function buildCats(){
   const cats=["All",...Object.keys(ICONS)];
   document.getElementById('cats').innerHTML=cats.map(c=>
@@ -239,5 +322,3 @@ function setCat(cat){
 }
 buildCats();buildDeck();
 </script>
-</body>
-</html>
